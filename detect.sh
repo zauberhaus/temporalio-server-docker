@@ -31,3 +31,4 @@ cp ./dist/temporal-server_linux_$ARCH/* ./build
 cp ./dist/tctl_linux_$ARCH/* ./build
 cp ./dist/temporal-cassandra-tool_linux_$ARCH/* ./build
 cp ./dist/temporal-sql-tool_linux_$ARCH/* ./build
+cp ./dist/dockerize_$ARCH ./build/dockerize
