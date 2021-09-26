@@ -15,7 +15,7 @@ RUN apk add --update --no-cache \
     openssl \
     bash \
     curl \
-    vim
+    && rm -rf /var/cache/apk/*
 
 COPY --from=binary /root/build/dockerize /usr/local/bin/dockerize
 # set up nsswitch.conf for Go's "netgo" implementation
@@ -28,10 +28,15 @@ ENV SERVICES "history:matching:frontend:worker"
 EXPOSE 6933 6934 6935 6939 7233 7234 7235 7239
 ENTRYPOINT ["./entrypoint.sh"]
 
-COPY ./config/dynamicconfig /etc/temporal/config/dynamicconfig
-COPY ./docker/config_template.yaml /etc/temporal/config/config_template.yaml
-COPY ./docker/entrypoint.sh /etc/temporal/entrypoint.sh
-COPY ./docker/start-temporal.sh /etc/temporal/start-temporal.sh
+RUN mkdir /etc/temporal/config \
+    && chown -R 1000:1000 /etc/temporal \
+    && chmod -R a+rw /etc/temporal/config
+
+COPY --chown=1000:1000 ./config/dynamicconfig /etc/temporal/config/dynamicconfig
+COPY --chown=1000:1000 ./docker/config_template.yaml /etc/temporal/config/config_template.yaml
+COPY --chown=1000:1000 ./docker/entrypoint.sh /etc/temporal/entrypoint.sh
+COPY --chown=1000:1000 ./docker/start-temporal.sh /etc/temporal/start-temporal.sh
+COPY --chown=1000:1000 docker/auto-setup.sh /etc/temporal/auto-setup.sh
 
 COPY  /schema /etc/temporal/schema
 COPY --from=binary /root/build/tctl /usr/local/bin/tctl
@@ -39,6 +44,6 @@ COPY --from=binary /root/build/temporal-server /usr/local/bin/temporal-server
 COPY --from=binary /root/build/temporal-cassandra-tool /usr/local/bin
 COPY --from=binary /root/build/temporal-sql-tool /usr/local/bin
 
-COPY docker/auto-setup.sh /etc/temporal/auto-setup.sh
+USER 1000
 
 CMD ["autosetup"]

@@ -23,7 +23,8 @@ RUN apk add --update --no-cache \
     postgresql-client \
     python2 \
     && curl https://bootstrap.pypa.io/pip/2.7/get-pip.py | python \
-    && pip install cqlsh
+    && pip install cqlsh \
+    && rm -rf /var/cache/apk/*
 
 # set up nsswitch.conf for Go's "netgo" implementation
 # https://github.com/gliderlabs/docker-alpine/issues/367#issuecomment-424546457
@@ -35,7 +36,11 @@ WORKDIR /etc/temporal
 # Keep the container running.
 ENTRYPOINT ["tail", "-f", "/dev/null"]
 
-COPY  /schema /etc/temporal/schema
+RUN chown -R 1000:1000 /etc/temporal
+
+COPY  --chown=1000:1000 /schema /etc/temporal/schema
 COPY --from=binary /root/build/temporal-cassandra-tool /usr/local/bin
 COPY --from=binary /root/build/temporal-sql-tool /usr/local/bin
 COPY --from=binary /root/build/tctl /usr/local/bin/tctl
+
+USER 1000
